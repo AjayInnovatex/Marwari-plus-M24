@@ -121,28 +121,29 @@ const predefinedRanges = [
   },
 ];
 
+const getMonthStartDate = () => {
+  const date = new Date();
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+};
+
 const StockSummary = () => {
   const { user } = useSelector((state) => state.auth);
   const [loading, setLoading] = useState(false);
   const [stockSummary, setStockSummary] = useState([]);
-  const [value, setValue] = useState([new Date(), new Date()]);
+  const [value, setValue] = useState([getMonthStartDate(), new Date()]);
 
   const httpErrorHandler = useHttpErrorHandler();
 
   const fetchData = useCallback(
-    async (
-      user,
-      ToDate = dateToNumber(new Date()),
-      FromDate = dateToNumber(new Date())
-    ) => {
+    async (user, FromDate = new Date(), ToDate = new Date()) => {
       try {
         setLoading(true);
         const response = await axios.get(
           `${user?.url}/api/Report/StockSummary`,
           {
             headers: {
-              ToDate: ToDate,
-              FromDate: FromDate,
+              ToDate: dateToNumber(ToDate),
+              FromDate: dateToNumber(FromDate),
               Auth: user?.loginResponse?.Authorization,
               Mode: user?.Mode,
               DbKey: user?.DbKey,
@@ -167,9 +168,11 @@ const StockSummary = () => {
 
   useEffect(() => {
     if (user) {
-      fetchData(user);
+      fetchData(user, value[0], value[1]);
     }
-  }, [user, fetchData]);
+  }, [user, fetchData, value]);
+
+  console.log("usr", user);
 
   const handleSearchClick = () => {
     fetchData(user, dateToNumber(value[1]), dateToNumber(value[0]));
@@ -249,6 +252,96 @@ const StockSummary = () => {
           </Table>
         </div>
       </div>
+      <Row className="p-2 m-0">
+        <Col xs={3} sm={3} md={3}>
+          <DateRangePicker
+            ranges={predefinedRanges}
+            //   placeholder="Select Date"
+            value={value}
+            onShortcutClick={(shortcut) => {
+              setValue(shortcut?.value);
+              // console.log(shortcut);
+            }}
+            onChange={setValue}
+          />
+        </Col>
+        <Col xs={3} sm={3} md={3}>
+          <IconButton
+            onClick={handleSearchClick}
+            style={{ border: "1px solid gray" }}
+            icon={<SearchIcon />}
+          />
+        </Col>
+      </Row>
+
+      <Table aria-label="collapsible table" size="small" className="my-2">
+        <TableHead
+          style={{
+            backgroundColor: "#172B4D",
+          }}
+        >
+          <TableRow>
+            <TableCell sx={{ fontWeight: "bold", color: "#FFFFFF" }}>
+              Name
+            </TableCell>
+            <TableCell sx={{ fontWeight: "bold", color: "#FFFFFF" }}>
+              Variant
+            </TableCell>
+            <TableCell sx={{ fontWeight: "bold", color: "#FFFFFF" }}>
+              Open Quantity
+            </TableCell>
+            <TableCell sx={{ fontWeight: "bold", color: "#FFFFFF" }}>
+              Inward Quantity
+            </TableCell>
+            <TableCell sx={{ fontWeight: "bold", color: "#FFFFFF" }}>
+              Quantity
+            </TableCell>
+            <TableCell sx={{ fontWeight: "bold", color: "#FFFFFF" }}>
+              Outward Quantity
+            </TableCell>
+            <TableCell sx={{ fontWeight: "bold", color: "#FFFFFF" }}>
+              Closing Quantity
+            </TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {loading ? (
+            <TableRow>
+              <TableCell colSpan={7}>
+                <TableSkeleton />
+              </TableCell>
+            </TableRow>
+          ) : (
+            <>
+              {stockSummary &&
+                stockSummary?.length > 0 &&
+                stockSummary?.map((row, index) => (
+                  <StyledTableRow key={index}>
+                    <TableCell component="th" scope="row">
+                      {row?.Name}
+                    </TableCell>
+                    <TableCell align="right">{row?.Variant}</TableCell>
+                    <TableCell align="right">
+                      {row?.OpnQty.toFixed(4)}
+                    </TableCell>
+                    <TableCell align="right">
+                      {row?.InwardQty.toFixed(4)}
+                    </TableCell>
+                    <TableCell align="right">
+                      {row?.Quantity.toFixed(4)}
+                    </TableCell>
+                    <TableCell align="right">
+                      {row?.OutwardQty.toFixed(4)}
+                    </TableCell>
+                    <TableCell align="right">
+                      {(row?.Quantity - row?.OutwardQty).toFixed(4)}
+                    </TableCell>
+                  </StyledTableRow>
+                ))}
+            </>
+          )}
+        </TableBody>
+      </Table>
     </>
   );
 };

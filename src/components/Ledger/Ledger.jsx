@@ -31,6 +31,7 @@ import TableSkeleton from "../../Skeleton/TableSkeleton";
 import { formateAmount } from "../../utils/formateAmount";
 import useHttpErrorHandler from "../../utils/userHttpErrorHandler";
 import { dateToNumber } from "../../utils/dateToNumber";
+import { formatDateFromNumber } from "../../utils/formateDate";
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
   "&:nth-of-type(odd)": {
@@ -125,6 +126,30 @@ const predefinedRanges = [
   },
 ];
 
+function calculateRunningBalance(transactions) {
+  let runningBalance = 0;
+
+  return transactions.map((transaction) => {
+    if (transaction.FormatedNumber === "Opening Balance") {
+      runningBalance = Math.abs(transaction.Amount);
+      transaction.runningBalance = `${formateAmount(runningBalance)} Cr.`;
+    } else if (
+      transaction.Type === "Receipt" ||
+      transaction.Type === "Credit Note"
+    ) {
+      runningBalance += Math.abs(transaction.Amount);
+      transaction.runningBalance = `${formateAmount(runningBalance)} Cr.`;
+    } else if (transaction.Type === "Sale") {
+      runningBalance -= Math.abs(transaction.Amount);
+      transaction.runningBalance =
+        runningBalance >= 0
+          ? `${formateAmount(runningBalance)} Cr.`
+          : `${formateAmount(runningBalance)} Dr.`;
+    }
+    return transaction;
+  });
+}
+
 const getMonthStartDate = () => {
   const date = new Date();
   return new Date(date.getFullYear(), date.getMonth(), 1);
@@ -198,7 +223,10 @@ const Ledger = () => {
         ]);
 
         if (standradTrailResponse && standradTrailResponse?.status === 200) {
-          setLadgerData(standradTrailResponse?.data);
+          const updatedData = calculateRunningBalance(
+            standradTrailResponse?.data
+          );
+          setLadgerData(updatedData);
         }
         setLoading(false);
       } catch (error) {
@@ -212,20 +240,19 @@ const Ledger = () => {
   useEffect(() => {
     if (user) {
       if (!ladgerId && !name) {
-        fetchData(user);
+        fetchData(user, "", value[1], value[0]);
       }
       fetchLadger(user);
     }
-  }, [user, ladgerId, name, fetchData, fetchLadger]);
+  }, [user, ladgerId, name, value, fetchData, fetchLadger]);
 
   useEffect(() => {
     if (user && ladgerId && name && from && to) {
       const parsedFrom = new Date(from);
       const parsedTo = new Date(to);
 
-      // console.log("parsedTo", parsedTo?.getFullYear());
-      // console.log("parsedFrom", parsedFrom?.getFullYear());
-
+      setValue([parsedFrom, parsedTo]);
+      setSelectedLadgerGroup(ladgerId);
       fetchData(user, ladgerId, parsedTo, parsedFrom);
     }
   }, [user, ladgerId, name, from, to, fetchData]);
@@ -236,39 +263,39 @@ const Ledger = () => {
 
   return (
     <>
-     <div className="container-fluid">
-      <Row className="p-2 m-0">
-        <Col xs={12} sm={3} md={3} style={{ marginTop: "10px" }}>
-          <DateRangePicker
-            ranges={predefinedRanges}
-            //   placeholder="Select Date"
-            value={value}
-            onShortcutClick={(shortcut) => {
-              setValue(shortcut?.value);
-              // console.log(shortcut);
-            }}
-            onChange={setValue}
-            style={{width:"100vw"}}
-          />
-        </Col>
-        <Col xs={10} sm={3} md={3} style={{ marginTop: "10px" }}>
-          <Form.Select
-            onChange={(e) => {
-              setSelectedLadgerGroup(e.target.value);
-            }}
-            value={selectedLadgerGroup}
-          >
-            <option>Select Ledger</option>
-            {ladgerGroup &&
-              ladgerGroup?.length > 0 &&
-              ladgerGroup.map((item) => (
-                <option key={item?.Id} value={item?.Id}>
-                  {item?.Name}
-                </option>
-              ))}
-          </Form.Select>
-        </Col>
-        
+      <div className="container-fluid">
+        <Row className="p-2 m-0">
+          <Col xs={12} sm={3} md={3} style={{ marginTop: "10px" }}>
+            <DateRangePicker
+              ranges={predefinedRanges}
+              //   placeholder="Select Date"
+              value={value}
+              onShortcutClick={(shortcut) => {
+                setValue(shortcut?.value);
+                // console.log(shortcut);
+              }}
+              onChange={setValue}
+              style={{ width: "100vw" }}
+            />
+          </Col>
+          <Col xs={10} sm={3} md={3} style={{ marginTop: "10px" }}>
+            <Form.Select
+              onChange={(e) => {
+                setSelectedLadgerGroup(e.target.value);
+              }}
+              value={selectedLadgerGroup}
+            >
+              <option>Select Ledger</option>
+              {ladgerGroup &&
+                ladgerGroup?.length > 0 &&
+                ladgerGroup.map((item) => (
+                  <option key={item?.Id} value={item?.Id}>
+                    {item?.Name}
+                  </option>
+                ))}
+            </Form.Select>
+          </Col>
+
           <Col xs={2} sm={3} md={3} style={{ marginTop: "10px" }}>
             <IconButton
               onClick={handleSearchClick}
@@ -280,63 +307,113 @@ const Ledger = () => {
               icon={<SearchIcon />}
             />
           </Col>
-      </Row>
-      <div className="table-responsive">
-        <Table aria-label="collapsible table" size="small">
-          <TableHead
-            style={{
-              backgroundColor: "#042470",
-            }}
-          >
-            <TableRow>
-              <TableCell sx={{ fontWeight: "bold", color: "#FFFFFF" }}>
-                Name
-              </TableCell>
-              <TableCell
-                align="right"
-                sx={{ fontWeight: "bold", color: "#FFFFFF" }}
-              >
-                Dr
-              </TableCell>
-              <TableCell
-                align="right"
-                sx={{ fontWeight: "bold", color: "#FFFFFF" }}
-              >
-                Cr
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {loading ? (
+        </Row>
+
+        <h5
+          style={{
+            textAlign: "center",
+            padding: "10px",
+            backgroundColor: "#ddd",
+          }}
+        >
+          {name}
+        </h5>
+
+        <div className="table-responsive">
+          <Table aria-label="collapsible table" size="small">
+            <TableHead
+              style={{
+                backgroundColor: "#172B4D",
+              }}
+            >
               <TableRow>
-                <TableCell colSpan={4}>
-                  <TableSkeleton />
+                <TableCell sx={{ fontWeight: "bold", color: "#FFFFFF" }}>
+                  Date
+                </TableCell>
+                <TableCell sx={{ fontWeight: "bold", color: "#FFFFFF" }}>
+                  Voucher Type
+                </TableCell>
+                <TableCell sx={{ fontWeight: "bold", color: "#FFFFFF" }}>
+                  Voucher No.
+                </TableCell>
+                <TableCell sx={{ fontWeight: "bold", color: "#FFFFFF" }}>
+                  Ledger
+                </TableCell>
+                <TableCell sx={{ fontWeight: "bold", color: "#FFFFFF" }}>
+                  Narration
+                </TableCell>
+                <TableCell sx={{ fontWeight: "bold", color: "#FFFFFF" }}>
+                  Reference No.
+                </TableCell>
+                <TableCell
+                  align="right"
+                  sx={{ fontWeight: "bold", color: "#FFFFFF" }}
+                >
+                  Dr
+                </TableCell>
+                <TableCell
+                  align="right"
+                  sx={{ fontWeight: "bold", color: "#FFFFFF" }}
+                >
+                  Cr
+                </TableCell>
+                <TableCell
+                  align="right"
+                  sx={{ fontWeight: "bold", color: "#FFFFFF" }}
+                >
+                  Running Balance
                 </TableCell>
               </TableRow>
-            ) : (
-              <>
-                {ladger &&
-                  ladger?.length > 0 &&
-                  ladger?.map((row, index) => (
-                    <StyledTableRow key={index}>
-                      <TableCell component="th" scope="row">
-                        {row?.Name}
-                      </TableCell>
-                      <TableCell align="right">
-                        {row?.Amount > 0 &&
-                          formateAmount(Math.abs(row?.Amount))}
-                      </TableCell>
-                      <TableCell align="right">
-                        {row?.Amount < 0 &&
-                          formateAmount(Math.abs(row?.Amount))}
-                      </TableCell>
-                    </StyledTableRow>
-                  ))}
-              </>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+            </TableHead>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={9}>
+                    <TableSkeleton />
+                  </TableCell>
+                </TableRow>
+              ) : (
+                <>
+                  {ladger &&
+                    ladger?.length > 0 &&
+                    ladger?.map((row, index) => (
+                      <StyledTableRow key={index}>
+                        <TableCell component="th" scope="row">
+                          {formatDateFromNumber(row?.Dated)}
+                        </TableCell>
+                        <TableCell component="th" scope="row">
+                          {row?.Type}
+                        </TableCell>
+                        <TableCell component="th" scope="row">
+                          {row?.FormatedNumber}
+                        </TableCell>
+                        <TableCell component="th" scope="row">
+                          {row?.Ledger}
+                        </TableCell>
+                        <TableCell component="th" scope="row">
+                          {row?.Narration}
+                        </TableCell>
+                        <TableCell component="th" scope="row">
+                          {row?.ReferenceNumber}
+                        </TableCell>
+                        <TableCell align="right">
+                          {row?.Amount > 0 &&
+                            formateAmount(Math.abs(row?.Amount))}
+                        </TableCell>
+                        <TableCell align="right">
+                          {row?.Amount < 0 &&
+                            formateAmount(Math.abs(row?.Amount))}
+                        </TableCell>
+                        <TableCell align="right">
+                          {row?.runningBalance}
+                        </TableCell>
+                      </StyledTableRow>
+                    ))}
+                </>
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     </>
   );
