@@ -1,0 +1,7 @@
+.search-btn {
+    border: 1.5px solid black;
+    border-radius: 3px;
+    padding: 5px 10px;
+    padding-top: -5px;
+    cursor: pointer;
+}
