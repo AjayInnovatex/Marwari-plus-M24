@@ -308,10 +308,9 @@ const Ledger = () => {
             />
           </Col>
         </Row>
-
         <h5
           style={{
-            textAlign: "center",
+            textAlign:"center",
             padding: "10px",
             backgroundColor: "#ddd",
           }}
