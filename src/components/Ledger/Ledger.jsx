@@ -7,6 +7,7 @@ import { useLocation } from "react-router-dom";
 import Form from "react-bootstrap/Form";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
+import Card from "react-bootstrap/Card";
 
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -31,6 +32,7 @@ import TableSkeleton from "../../Skeleton/TableSkeleton";
 import { formateAmount } from "../../utils/formateAmount";
 import useHttpErrorHandler from "../../utils/userHttpErrorHandler";
 import { dateToNumber } from "../../utils/dateToNumber";
+import { formatDateFromNumber } from "../../utils/formateDate";
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
   "&:nth-of-type(odd)": {
@@ -125,6 +127,30 @@ const predefinedRanges = [
   },
 ];
 
+function calculateRunningBalance(transactions) {
+  let runningBalance = 0;
+
+  return transactions.map((transaction) => {
+    if (transaction.FormatedNumber === "Opening Balance") {
+      runningBalance = Math.abs(transaction.Amount);
+      transaction.runningBalance = `${formateAmount(runningBalance)} Cr.`;
+    } else if (
+      transaction.Type === "Receipt" ||
+      transaction.Type === "Credit Note"
+    ) {
+      runningBalance += Math.abs(transaction.Amount);
+      transaction.runningBalance = `${formateAmount(runningBalance)} Cr.`;
+    } else if (transaction.Type === "Sale") {
+      runningBalance -= Math.abs(transaction.Amount);
+      transaction.runningBalance =
+        runningBalance >= 0
+          ? `${formateAmount(runningBalance)} Cr.`
+          : `${formateAmount(runningBalance)} Dr.`;
+    }
+    return transaction;
+  });
+}
+
 const getMonthStartDate = () => {
   const date = new Date();
   return new Date(date.getFullYear(), date.getMonth(), 1);
@@ -198,7 +224,10 @@ const Ledger = () => {
         ]);
 
         if (standradTrailResponse && standradTrailResponse?.status === 200) {
-          setLadgerData(standradTrailResponse?.data);
+          const updatedData = calculateRunningBalance(
+            standradTrailResponse?.data
+          );
+          setLadgerData(updatedData);
         }
         setLoading(false);
       } catch (error) {
@@ -212,20 +241,19 @@ const Ledger = () => {
   useEffect(() => {
     if (user) {
       if (!ladgerId && !name) {
-        fetchData(user);
+        fetchData(user, "", value[1], value[0]);
       }
       fetchLadger(user);
     }
-  }, [user, ladgerId, name, fetchData, fetchLadger]);
+  }, [user, ladgerId, name, value, fetchData, fetchLadger]);
 
   useEffect(() => {
     if (user && ladgerId && name && from && to) {
       const parsedFrom = new Date(from);
       const parsedTo = new Date(to);
 
-      // console.log("parsedTo", parsedTo?.getFullYear());
-      // console.log("parsedFrom", parsedFrom?.getFullYear());
-
+      setValue([parsedFrom, parsedTo]);
+      setSelectedLadgerGroup(ladgerId);
       fetchData(user, ladgerId, parsedTo, parsedFrom);
     }
   }, [user, ladgerId, name, from, to, fetchData]);
@@ -275,6 +303,12 @@ const Ledger = () => {
         </Col>
       </Row>
 
+      <Card className="m-2 text-center">
+        <Card.Body>
+          <h5>{name}</h5>
+        </Card.Body>
+      </Card>
+
       <Table aria-label="collapsible table" size="small">
         <TableHead
           style={{
@@ -283,7 +317,22 @@ const Ledger = () => {
         >
           <TableRow>
             <TableCell sx={{ fontWeight: "bold", color: "#FFFFFF" }}>
-              Name
+              Date
+            </TableCell>
+            <TableCell sx={{ fontWeight: "bold", color: "#FFFFFF" }}>
+              Voucher Type
+            </TableCell>
+            <TableCell sx={{ fontWeight: "bold", color: "#FFFFFF" }}>
+              Voucher No.
+            </TableCell>
+            <TableCell sx={{ fontWeight: "bold", color: "#FFFFFF" }}>
+              Ledger
+            </TableCell>
+            <TableCell sx={{ fontWeight: "bold", color: "#FFFFFF" }}>
+              Narration
+            </TableCell>
+            <TableCell sx={{ fontWeight: "bold", color: "#FFFFFF" }}>
+              Reference No.
             </TableCell>
             <TableCell
               align="right"
@@ -297,12 +346,18 @@ const Ledger = () => {
             >
               Cr
             </TableCell>
+            <TableCell
+              align="right"
+              sx={{ fontWeight: "bold", color: "#FFFFFF" }}
+            >
+              Running Balance
+            </TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {loading ? (
             <TableRow>
-              <TableCell colSpan={4}>
+              <TableCell colSpan={9}>
                 <TableSkeleton />
               </TableCell>
             </TableRow>
@@ -313,7 +368,22 @@ const Ledger = () => {
                 ladger?.map((row, index) => (
                   <StyledTableRow key={index}>
                     <TableCell component="th" scope="row">
-                      {row?.Name}
+                      {formatDateFromNumber(row?.Dated)}
+                    </TableCell>
+                    <TableCell component="th" scope="row">
+                      {row?.Type}
+                    </TableCell>
+                    <TableCell component="th" scope="row">
+                      {row?.FormatedNumber}
+                    </TableCell>
+                    <TableCell component="th" scope="row">
+                      {row?.Ledger}
+                    </TableCell>
+                    <TableCell component="th" scope="row">
+                      {row?.Narration}
+                    </TableCell>
+                    <TableCell component="th" scope="row">
+                      {row?.ReferenceNumber}
                     </TableCell>
                     <TableCell align="right">
                       {row?.Amount > 0 && formateAmount(Math.abs(row?.Amount))}
@@ -321,6 +391,7 @@ const Ledger = () => {
                     <TableCell align="right">
                       {row?.Amount < 0 && formateAmount(Math.abs(row?.Amount))}
                     </TableCell>
+                    <TableCell align="right">{row?.runningBalance}</TableCell>
                   </StyledTableRow>
                 ))}
             </>
