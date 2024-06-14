@@ -360,138 +360,150 @@ const StandardTrail = () => {
 
   return (
     <>
-      <Row className="p-2 m-0">
-        <Col xs={3} sm={3} md={3}>
-          <DateRangePicker
-            ranges={predefinedRanges}
-            //   placeholder="Select Date"
-            value={value}
-            onShortcutClick={(shortcut) => {
-              setValue(shortcut?.value);
-              // console.log(shortcut);
-            }}
-            onChange={setValue}
-          />
-        </Col>
-        <Col xs={3} sm={3} md={3}>
-          <Form.Select
-            value={selectedLadgerGroup}
-            onChange={(e) => {
-              setSelectedLadgerGroup(e.target.value);
-            }}
-          >
-            <option>Select Ladger Group</option>
-            {standardaTrailDetailedData &&
-              standardaTrailDetailedData?.length > 0 &&
-              standardaTrailDetailedData.map((item, index) => (
-                <option key={index} value={`${item?.Id},${item?.LedgerGroup}`}>
-                  {item?.LedgerGroup}
-                </option>
-              ))}
-          </Form.Select>
-        </Col>
-        <Col xs={3} sm={3} md={3}>
-          <Form.Select
-            value={showType}
-            onChange={(e) => {
-              setShowType(e.target.value);
-            }}
-          >
-            <option value="">Select Option</option>
-            <option value="0">Show All</option>
-            <option value="1">Select Zero Only</option>
-          </Form.Select>
-        </Col>
-        <Col xs={3} sm={3} md={3}>
-          <IconButton
-            onClick={handleSearchClick}
-            style={{ border: "1px solid gray" }}
-            icon={<SearchIcon />}
-          />
-        </Col>
-      </Row>
+      <div className="container-fluid">
+        <Row className="p-2 m-0">
+          <Col xs={12} sm={3} md={3} style={{marginTop:"10px"}}>
+            <DateRangePicker
+              ranges={predefinedRanges}
+              //   placeholder="Select Date"
+              value={value}
+              onShortcutClick={(shortcut) => {
+                setValue(shortcut?.value);
+                // console.log(shortcut);
+              }}
+              onChange={setValue} style={{width:"100vw"}}
+            />
+          </Col>
+          <Col xs={12} sm={3} md={3} style={{marginTop:"10px"}}>
+            <Form.Select
+              value={selectedLadgerGroup}
+              onChange={(e) => {
+                setSelectedLadgerGroup(e.target.value);
+              }}
+            >
+              <option>Select Ledger Group</option>
+              {standardaTrailDetailedData &&
+                standardaTrailDetailedData?.length > 0 &&
+                standardaTrailDetailedData.map((item, index) => (
+                  <option
+                    key={index}
+                    value={`${item?.Id},${item?.LedgerGroup}`}
+                  >
+                    {item?.LedgerGroup}
+                  </option>
+                ))}
+            </Form.Select>
+          </Col>
+          <Col xs={10} sm={3} md={3} style={{marginTop:"10px"}}>
+            <Form.Select
+              value={showType}
+              onChange={(e) => {
+                setShowType(e.target.value);
+              }}
+            >
+              <option value="">Select Option</option>
+              <option value="0">Show All</option>
+              <option value="1">Select Zero Only</option>
+            </Form.Select>
+          </Col>
+          
+          <Col xs={2} sm={3} md={3} style={{marginTop:"10px"}}>
+            <IconButton
+              onClick={handleSearchClick}
+              style={{
+                border: "1px solid gray",
+                color: "#fff",
+                backgroundColor: "#042470",
+              }}
+              icon={<SearchIcon />}
+            />
+          </Col>
+        </Row>
 
-      <Table aria-label="collapsible table" size="small">
-        <TableHead
-          style={{
-            backgroundColor: "#172B4D",
-          }}
-        >
-          <TableRow>
-            <TableCell />
-            <TableCell sx={{ fontWeight: "bold", color: "#FFFFFF" }}>
-              {name ? name : "Ledger Group"}
-            </TableCell>
-            {/* <TableCell
+        <div className="table-responsive">
+          <Table aria-label="collapsible table" size="small">
+            <TableHead
+              style={{
+                backgroundColor: "#042470",
+              }}
+            >
+              <TableRow>
+                <TableCell />
+                <TableCell sx={{ fontWeight: "bold", color: "#FFFFFF" }}>
+                  {name ? name : "Ledger Group"}
+                </TableCell>
+                {/* <TableCell
               align="left"
               sx={{ fontWeight: "bold", color: "#FFFFFF" }}
             >
               Ledger
             </TableCell> */}
-            <TableCell
-              align="right"
-              sx={{ fontWeight: "bold", color: "#FFFFFF" }}
-            >
-              Dr
-            </TableCell>
-            <TableCell
-              align="right"
-              sx={{ fontWeight: "bold", color: "#FFFFFF" }}
-            >
-              Cr
-            </TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {loading ? (
-            <TableRow>
-              <TableCell colSpan={4}>
-                <TableSkeleton />
-              </TableCell>
-            </TableRow>
-          ) : (
-            <>
-              {standardaTrailDetailedData &&
-                standardaTrailDetailedData?.length > 0 &&
-                standardaTrailDetailedData?.map((row, index) => (
-                  <TableRowData
-                    key={index}
-                    row={row}
-                    ToDate={value[1]}
-                    ladgerGroup={selectedLadgerGroup}
-                    standardTrailData={standardTrailData}
-                    level={0}
-                    date={value}
-                  />
-                ))}
+                <TableCell
+                  align="right"
+                  sx={{ fontWeight: "bold", color: "#FFFFFF" }}
+                >
+                  Dr
+                </TableCell>
+                <TableCell
+                  align="right"
+                  sx={{ fontWeight: "bold", color: "#FFFFFF" }}
+                >
+                  Cr
+                </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={4}>
+                    <TableSkeleton />
+                  </TableCell>
+                </TableRow>
+              ) : (
+                <>
+                  {standardaTrailDetailedData &&
+                    standardaTrailDetailedData?.length > 0 &&
+                    standardaTrailDetailedData?.map((row, index) => (
+                      <TableRowData
+                        key={index}
+                        row={row}
+                        ToDate={value[1]}
+                        ladgerGroup={selectedLadgerGroup}
+                        standardTrailData={standardTrailData}
+                        level={0}
+                        date={value}
+                      />
+                    ))}
 
-              {ladgerGroupId &&
-                standardaTrailDetailedData &&
-                standardaTrailDetailedData?.length > 0 && (
-                  <TableRow>
-                    <TableCell
-                      style={{ fontWeight: "bold" }}
-                      align="center"
-                      colSpan="2"
-                    >
-                      Total
-                    </TableCell>
-                    <TableCell style={{ fontWeight: "bold" }} align="right">
-                      {totalAmonunt?.Dr === 0
-                        ? "-"
-                        : formateAmount(totalAmonunt?.Dr)}
-                    </TableCell>
-                    <TableCell style={{ fontWeight: "bold" }} align="right">
-                      {Math.abs(totalAmonunt?.Cr) === 0
-                        ? "-"
-                        : formateAmount(Math.abs(totalAmonunt?.Cr))}
-                    </TableCell>
-                  </TableRow>
-                )}
-            </>
-          )}
-        </TableBody>
-      </Table>
+                  {ladgerGroupId &&
+                    standardaTrailDetailedData &&
+                    standardaTrailDetailedData?.length > 0 && (
+                      <TableRow>
+                        <TableCell
+                          style={{ fontWeight: "bold" }}
+                          align="center"
+                          colSpan="2"
+                        >
+                          Total
+                        </TableCell>
+                        <TableCell style={{ fontWeight: "bold" }} align="right">
+                          {totalAmonunt?.Dr === 0
+                            ? "-"
+                            : formateAmount(totalAmonunt?.Dr)}
+                        </TableCell>
+                        <TableCell style={{ fontWeight: "bold" }} align="right">
+                          {Math.abs(totalAmonunt?.Cr) === 0
+                            ? "-"
+                            : formateAmount(Math.abs(totalAmonunt?.Cr))}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                </>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
     </>
   );
 };

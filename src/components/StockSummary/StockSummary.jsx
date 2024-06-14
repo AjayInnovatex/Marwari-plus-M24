@@ -177,70 +177,78 @@ const StockSummary = () => {
 
   return (
     <>
-      <Row className="p-2 m-0">
-        <Col xs={3} sm={3} md={3}>
-          <DateRangePicker
-            ranges={predefinedRanges}
-            //   placeholder="Select Date"
-            value={value}
-            onShortcutClick={(shortcut) => {
-              setValue(shortcut?.value);
-              // console.log(shortcut);
-            }}
-            onChange={setValue}
-          />
-        </Col>
-        <Col xs={3} sm={3} md={3}>
-          <IconButton
-            onClick={handleSearchClick}
-            style={{ border: "1px solid gray" }}
-            icon={<SearchIcon />}
-          />
-        </Col>
-      </Row>
-
-      <Table aria-label="collapsible table" size="small" className="my-2">
-        <TableHead
-          style={{
-            backgroundColor: "#172B4D",
-          }}
-        >
-          <TableRow>
-            <TableCell sx={{ fontWeight: "bold", color: "#FFFFFF" }}>
-              Name
-            </TableCell>
-            <TableCell sx={{ fontWeight: "bold", color: "#FFFFFF" }}>
-              Variant
-            </TableCell>
-            <TableCell sx={{ fontWeight: "bold", color: "#FFFFFF" }}>
-              Quantity
-            </TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {loading ? (
-            <TableRow>
-              <TableCell colSpan={4}>
-                <TableSkeleton />
-              </TableCell>
-            </TableRow>
-          ) : (
-            <>
-              {stockSummary &&
-                stockSummary?.length > 0 &&
-                stockSummary?.map((row, index) => (
-                  <StyledTableRow key={index}>
-                    <TableCell component="th" scope="row">
-                      {row?.Name}
-                    </TableCell>
-                    <TableCell align="right">{row?.Variant}</TableCell>
-                    <TableCell align="right">{row?.Quantity}</TableCell>
-                  </StyledTableRow>
-                ))}
-            </>
-          )}
-        </TableBody>
-      </Table>
+      <div className="container-fluid">
+        <Row className="p-2 m-0">
+        <Col xs={10} sm={3} md={3} style={{marginTop:"10px"}}>
+            <DateRangePicker
+              ranges={predefinedRanges}
+              //   placeholder="Select Date"
+              value={value}
+              onShortcutClick={(shortcut) => {
+                setValue(shortcut?.value);
+                // console.log(shortcut);
+              }}
+              style={{width:"100vw"}}
+              onChange={setValue}
+            />
+          </Col>
+          <Col xs={2} sm={3} md={3} style={{marginTop:"10px"}}>
+            <IconButton
+              onClick={handleSearchClick}
+              style={{
+                border: "1px solid gray",
+                color: "#fff",
+                backgroundColor: "#042470",
+              }}
+              icon={<SearchIcon />}
+            />
+          </Col>
+        </Row>
+        <div className="table-responsive">
+          <Table aria-label="collapsible table" size="small" className="my-2">
+            <TableHead
+              style={{
+                backgroundColor: "#042470",
+              }}
+            >
+              <TableRow>
+                <TableCell sx={{ fontWeight: "bold", color: "#FFFFFF" }}>
+                  Name
+                </TableCell>
+                <TableCell sx={{ fontWeight: "bold", color: "#FFFFFF" }}>
+                  Variant
+                </TableCell>
+                <TableCell sx={{ fontWeight: "bold", color: "#FFFFFF" }}>
+                  Quantity
+                </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={4}>
+                    <TableSkeleton />
+                  </TableCell>
+                </TableRow>
+              ) : (
+                <>
+                  {stockSummary &&
+                    stockSummary?.length > 0 &&
+                    stockSummary?.map((row, index) => (
+                      <StyledTableRow key={index}>
+                        <TableCell component="th" scope="row">
+                          {row?.Name}
+                        </TableCell>
+                        <TableCell align="right">{row?.Variant}</TableCell>
+                        <TableCell align="right">{row?.Quantity}</TableCell>
+                      </StyledTableRow>
+                    ))}
+                </>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
     </>
   );
 };

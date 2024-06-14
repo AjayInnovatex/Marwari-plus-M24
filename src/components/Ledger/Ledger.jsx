@@ -236,8 +236,9 @@ const Ledger = () => {
 
   return (
     <>
+     <div className="container-fluid">
       <Row className="p-2 m-0">
-        <Col xs={3} sm={3} md={3}>
+        <Col xs={12} sm={3} md={3} style={{ marginTop: "10px" }}>
           <DateRangePicker
             ranges={predefinedRanges}
             //   placeholder="Select Date"
@@ -247,16 +248,17 @@ const Ledger = () => {
               // console.log(shortcut);
             }}
             onChange={setValue}
+            style={{width:"100vw"}}
           />
         </Col>
-        <Col xs={3} sm={3} md={3}>
+        <Col xs={10} sm={3} md={3} style={{ marginTop: "10px" }}>
           <Form.Select
             onChange={(e) => {
               setSelectedLadgerGroup(e.target.value);
             }}
             value={selectedLadgerGroup}
           >
-            <option>Select Ladger</option>
+            <option>Select Ledger</option>
             {ladgerGroup &&
               ladgerGroup?.length > 0 &&
               ladgerGroup.map((item) => (
@@ -266,67 +268,76 @@ const Ledger = () => {
               ))}
           </Form.Select>
         </Col>
-        <Col xs={3} sm={3} md={3}>
-          <IconButton
-            onClick={handleSearchClick}
-            style={{ border: "1px solid gray" }}
-            icon={<SearchIcon />}
-          />
-        </Col>
+        
+          <Col xs={2} sm={3} md={3} style={{ marginTop: "10px" }}>
+            <IconButton
+              onClick={handleSearchClick}
+              style={{
+                border: "1px solid gray",
+                color: "#fff",
+                backgroundColor: "#042470",
+              }}
+              icon={<SearchIcon />}
+            />
+          </Col>
       </Row>
-
-      <Table aria-label="collapsible table" size="small">
-        <TableHead
-          style={{
-            backgroundColor: "#172B4D",
-          }}
-        >
-          <TableRow>
-            <TableCell sx={{ fontWeight: "bold", color: "#FFFFFF" }}>
-              Name
-            </TableCell>
-            <TableCell
-              align="right"
-              sx={{ fontWeight: "bold", color: "#FFFFFF" }}
-            >
-              Dr
-            </TableCell>
-            <TableCell
-              align="right"
-              sx={{ fontWeight: "bold", color: "#FFFFFF" }}
-            >
-              Cr
-            </TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {loading ? (
+      <div className="table-responsive">
+        <Table aria-label="collapsible table" size="small">
+          <TableHead
+            style={{
+              backgroundColor: "#042470",
+            }}
+          >
             <TableRow>
-              <TableCell colSpan={4}>
-                <TableSkeleton />
+              <TableCell sx={{ fontWeight: "bold", color: "#FFFFFF" }}>
+                Name
+              </TableCell>
+              <TableCell
+                align="right"
+                sx={{ fontWeight: "bold", color: "#FFFFFF" }}
+              >
+                Dr
+              </TableCell>
+              <TableCell
+                align="right"
+                sx={{ fontWeight: "bold", color: "#FFFFFF" }}
+              >
+                Cr
               </TableCell>
             </TableRow>
-          ) : (
-            <>
-              {ladger &&
-                ladger?.length > 0 &&
-                ladger?.map((row, index) => (
-                  <StyledTableRow key={index}>
-                    <TableCell component="th" scope="row">
-                      {row?.Name}
-                    </TableCell>
-                    <TableCell align="right">
-                      {row?.Amount > 0 && formateAmount(Math.abs(row?.Amount))}
-                    </TableCell>
-                    <TableCell align="right">
-                      {row?.Amount < 0 && formateAmount(Math.abs(row?.Amount))}
-                    </TableCell>
-                  </StyledTableRow>
-                ))}
-            </>
-          )}
-        </TableBody>
-      </Table>
+          </TableHead>
+          <TableBody>
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={4}>
+                  <TableSkeleton />
+                </TableCell>
+              </TableRow>
+            ) : (
+              <>
+                {ladger &&
+                  ladger?.length > 0 &&
+                  ladger?.map((row, index) => (
+                    <StyledTableRow key={index}>
+                      <TableCell component="th" scope="row">
+                        {row?.Name}
+                      </TableCell>
+                      <TableCell align="right">
+                        {row?.Amount > 0 &&
+                          formateAmount(Math.abs(row?.Amount))}
+                      </TableCell>
+                      <TableCell align="right">
+                        {row?.Amount < 0 &&
+                          formateAmount(Math.abs(row?.Amount))}
+                      </TableCell>
+                    </StyledTableRow>
+                  ))}
+              </>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+      </div>
     </>
   );
 };
